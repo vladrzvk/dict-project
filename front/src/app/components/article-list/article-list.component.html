@@ -1,27 +1,69 @@
-<div class="container">
-    <h2>Articles</h2>
-    <a [routerLink]="['/articles/new']" class="btn btn-primary mb-3">Add New Article</a>
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-3xl font-bold text-gray-800">Articles</h2>
+    <a 
+      [routerLink]="['/articles/new']" 
+      class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out"
+    >
+      Ajouter un Article
+    </a>
+  </div>
+  
+  <div *ngIf="loading" class="text-center py-4">
+    <div class="spinner-border text-blue-500" role="status">
+      <span class="sr-only">Chargement...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+    {{ error }}
+  </div>
+  
+  <div *ngIf="!loading && !error">
+    <div *ngIf="articles.length === 0" class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative">
+      Aucun article trouvé.
+    </div>
     
-    <div *ngIf="loading" class="alert alert-info">Loading articles...</div>
-    <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
-    
-    <div *ngIf="!loading && !error">
-      <div *ngIf="articles.length === 0" class="alert alert-warning">No articles found.</div>
-      
-      <div *ngFor="let article of articles" class="card mb-3">
-        <div class="card-body">
-          <h5 class="card-title">{{ article.title }}</h5>
-          <h6 class="card-subtitle mb-2 text-muted">By {{ article.author || 'Unknown' }}</h6>
-          <p class="card-text">{{ article.content | slice:0:150 }}...</p>
-          <span class="badge" [ngClass]="article.published ? 'badge-success' : 'badge-secondary'">
-            {{ article.published ? 'Published' : 'Draft' }}
-          </span>
-          <div class="mt-2">
-            <a [routerLink]="['/articles', article.id]" class="btn btn-sm btn-info mr-1">View</a>
-            <a [routerLink]="['/articles', article.id, 'edit']" class="btn btn-sm btn-warning mr-1">Edit</a>
-            <button (click)="deleteArticle(article.id)" class="btn btn-sm btn-danger">Delete</button>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div *ngFor="let article of articles" class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="p-6">
+          <h5 class="text-xl font-semibold text-gray-800 mb-2">{{ article.title }}</h5>
+          <h6 class="text-sm text-gray-500 mb-4">Par {{ article.author || 'Auteur inconnu' }}</h6>
+          <p class="text-gray-600 mb-4">
+            {{ article.content | slice:0:150 }}...
+          </p>
+          
+          <div class="flex items-center mb-4">
+            <span 
+              class="px-3 py-1 text-xs rounded-full font-semibold uppercase 
+              {{ article.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}"
+            >
+              {{ article.published ? 'Publié' : 'Brouillon' }}
+            </span>
+          </div>
+          
+          <div class="flex space-x-2">
+            <a 
+              [routerLink]="['/articles', article.id]" 
+              class="bg-blue-500 hover:bg-blue-600 text-white text-sm py-2 px-3 rounded transition duration-300"
+            >
+              Voir
+            </a>
+            <a 
+              [routerLink]="['/articles', article.id, 'edit']" 
+              class="bg-yellow-500 hover:bg-yellow-600 text-white text-sm py-2 px-3 rounded transition duration-300"
+            >
+              Modifier
+            </a>
+            <button 
+              (click)="deleteArticle(article.id)" 
+              class="bg-red-500 hover:bg-red-600 text-white text-sm py-2 px-3 rounded transition duration-300"
+            >
+              Supprimer
+            </button>
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>

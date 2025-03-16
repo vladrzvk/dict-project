@@ -1,75 +1,92 @@
-<div class="container">
-    <h2>{{ isEdit ? 'Modifier' : 'Créer' }} un Article</h2>
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <h2 class="text-3xl font-bold text-gray-800 mb-6">
+      {{ isEdit ? 'Modifier' : 'Créer' }} un Article
+    </h2>
   
-    <form [formGroup]="articleForm" (ngSubmit)="onSubmit()" class="article-form">
-      <div class="form-group">
-        <label for="title">Titre</label>
+    <form [formGroup]="articleForm" (ngSubmit)="onSubmit()" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
+          Titre
+        </label>
         <input 
           type="text" 
           id="title" 
           formControlName="title" 
-          class="form-control" 
-          [ngClass]="{ 'is-invalid': submitted && articleForm.get('title')?.errors }"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          [ngClass]="{ 
+            'border-red-500': submitted && articleForm.get('title')?.errors,
+            'border-green-500': submitted && !articleForm.get('title')?.errors 
+          }"
         >
-        <div *ngIf="submitted && articleForm.get('title')?.errors" class="invalid-feedback">
-          <div *ngIf="articleForm.get('title')?.errors?.['required']">Le titre est requis</div>
-          <div *ngIf="articleForm.get('title')?.errors?.['maxlength']">Le titre ne doit pas dépasser 255 caractères</div>
-        </div>
+        <p 
+          *ngIf="submitted && articleForm.get('title')?.errors" 
+          class="text-red-500 text-xs italic"
+        >
+          Le titre est requis et ne doit pas dépasser 255 caractères.
+        </p>
       </div>
   
-      <div class="form-group">
-        <label for="author">Auteur</label>
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="author">
+          Auteur
+        </label>
         <input 
           type="text" 
           id="author" 
           formControlName="author" 
-          class="form-control"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
         >
       </div>
   
-      <div class="form-group">
-        <label for="content">Contenu</label>
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="content">
+          Contenu
+        </label>
         <textarea 
           id="content" 
           formControlName="content" 
-          class="form-control" 
-          rows="10"
-          [ngClass]="{ 'is-invalid': submitted && articleForm.get('content')?.errors }"
+          rows="10" 
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          [ngClass]="{ 
+            'border-red-500': submitted && articleForm.get('content')?.errors,
+            'border-green-500': submitted && !articleForm.get('content')?.errors 
+          }"
         ></textarea>
-        <div *ngIf="submitted && articleForm.get('content')?.errors" class="invalid-feedback">
-          <div *ngIf="articleForm.get('content')?.errors?.['required']">Le contenu est requis</div>
-        </div>
-      </div>
-  
-      <div class="form-group form-check">
-        <input 
-          type="checkbox" 
-          id="published" 
-          formControlName="published" 
-          class="form-check-input"
+        <p 
+          *ngIf="submitted && articleForm.get('content')?.errors" 
+          class="text-red-500 text-xs italic"
         >
-        <label for="published" class="form-check-label">Publié</label>
+          Le contenu est requis.
+        </p>
       </div>
   
-      <div *ngIf="error" class="alert alert-danger mt-3">
+      <div class="mb-4">
+        <label class="flex items-center">
+          <input 
+            type="checkbox" 
+            formControlName="published" 
+            class="form-checkbox h-5 w-5 text-blue-600"
+          >
+          <span class="ml-2 text-gray-700">Publié</span>
+        </label>
+      </div>
+  
+      <div *ngIf="error" class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
         {{ error }}
       </div>
   
-      <div *ngIf="loading" class="text-center">
-        <p>Chargement...</p>
-      </div>
-  
-      <div class="form-actions">
+      <div class="flex items-center justify-between">
         <button 
           type="submit" 
-          class="btn btn-primary" 
           [disabled]="loading"
+          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline
+                 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {{ isEdit ? 'Mettre à jour' : 'Créer' }} l'article
         </button>
         <a 
           [routerLink]="['/articles']" 
-          class="btn btn-secondary ml-2"
+          class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800"
         >
           Annuler
         </a>
