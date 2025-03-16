@@ -4,19 +4,36 @@ namespace App\Http\Middleware\Dict;
 
 use Closure;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Services\Dict\DictIntegrityService;
 
 class IntegrityMiddleware
 {
+    /**
+     * @var DictIntegrityService
+     */
+    protected $integrityService;
+    
+    /**
+     * Constructeur avec injection de dépendance
+     */
+    public function __construct(DictIntegrityService $integrityService)
+    {
+        $this->integrityService = $integrityService;
+    }
+    
     public function handle($request, Closure $next)
     {
         // Validation des données d'entrée pour les requêtes POST/PUT
         if ($request->isMethod('post') || $request->isMethod('put')) {
-            $validationResult = $this->validateInput($request);
+            $rules = $this->getValidationRules($request);
             
-            if (!$validationResult['valid']) {
-                Log::warning('DICT:Intégrité - Données invalides', ['errors' => $validationResult['errors']]);
-                return response()->json(['error' => 'Données invalides', 'details' => $validationResult['errors']], 422);
+            if (!empty($rules)) {
+                $validationResult = $this->integrityService->validateData($request->all(), $rules);
+                
+                if (!$validationResult['valid']) {
+                    Log::warning('DICT:Intégrité - Données invalides', ['errors' => $validationResult['errors']]);
+                    return response()->json(['error' => 'Données invalides', 'details' => $validationResult['errors']], 422);
+                }
             }
         }
         
@@ -25,7 +42,13 @@ class IntegrityMiddleware
         return $response;
     }
     
-    private function validateInput($request)
+    /**
+     * Obtenir les règles de validation en fonction de la route
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    private function getValidationRules($request)
     {
         $rules = [];
         $path = $request->path();
@@ -40,19 +63,6 @@ class IntegrityMiddleware
             ];
         }
         
-        if (empty($rules)) {
-            return ['valid' => true];
-        }
-        
-        $validator = Validator::make($request->all(), $rules);
-        
-        if ($validator->fails()) {
-            return [
-                'valid' => false,
-                'errors' => $validator->errors()->toArray()
-            ];
-        }
-        
-        return ['valid' => true];
+        return $rules;
     }
 }

@@ -9,19 +9,18 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
-        api: __DIR__.'/../routes/api.php', // Ajout de la route API
+        api: __DIR__.'/../routes/api.php',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Ajout des middlewares DICT au groupe API
-        $middleware->api([
-            // Middlewares DICT
+        // Définir le groupe de middleware 'dict' pour les routes d'articles
+        $middleware->group('dict', [
             \App\Http\Middleware\Dict\AvailabilityMiddleware::class,
             \App\Http\Middleware\Dict\IntegrityMiddleware::class,
             \App\Http\Middleware\Dict\ConfidentialityMiddleware::class,
             \App\Http\Middleware\Dict\TraceabilityMiddleware::class,
         ]);
         
-        // Enregistrer les middlewares de route DICT
+        // Enregistrer les middlewares de route DICT individuellement
         $middleware->alias([
             'dict.availability' => \App\Http\Middleware\Dict\AvailabilityMiddleware::class,
             'dict.integrity' => \App\Http\Middleware\Dict\IntegrityMiddleware::class,

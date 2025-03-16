@@ -3,13 +3,13 @@ version: '3'
 services:
   db:
     image: mysql:8.0
+    container_name: blog-dict-db
     environment:
-      MYSQL_DATABASE: blog_dict
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
-
-volumes:
-  mysql_data:
+      - ./docker/mysql/data:/var/lib/mysql

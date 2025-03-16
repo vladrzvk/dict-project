@@ -4,17 +4,33 @@ namespace App\Http\Middleware\Dict;
 
 use Closure;
 use Illuminate\Support\Facades\Log;
+use App\Http\Services\Dict\DictAvailabilityService;
 
 class AvailabilityMiddleware
 {
+    /**
+     * @var DictAvailabilityService
+     */
+    protected $availabilityService;
+    
+    /**
+     * Constructeur avec injection de dépendance
+     */
+    public function __construct(DictAvailabilityService $availabilityService)
+    {
+        $this->availabilityService = $availabilityService;
+    }
+    
     public function handle($request, Closure $next)
     {
         // Mesurer le temps de démarrage
         $startTime = microtime(true);
         
         // Vérifier l'état du système
-        if (!$this->checkSystemHealth()) {
-            Log::critical('DICT:Disponibilité - Le système est indisponible');
+        $systemHealth = $this->availabilityService->checkSystemHealth();
+        
+        if ($systemHealth['status'] !== 'healthy') {
+            Log::critical('DICT:Disponibilité - Le système est dégradé ou indisponible', $systemHealth);
             return response()->json(['error' => 'Service temporairement indisponible'], 503);
         }
         
@@ -25,17 +41,5 @@ class AvailabilityMiddleware
         Log::info('DICT:Disponibilité - Temps de réponse', ['duration_ms' => $responseTime * 1000]);
         
         return $response;
-    }
-    
-    private function checkSystemHealth()
-    {
-        try {
-            // Vérifier l'accès à la base de données
-            \DB::connection()->getPdo();
-            return true;
-        } catch (\Exception $e) {
-            Log::error('DICT:Disponibilité - Erreur de connexion DB: ' . $e->getMessage());
-            return false;
-        }
     }
 }

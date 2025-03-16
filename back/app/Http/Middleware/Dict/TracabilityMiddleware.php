@@ -4,36 +4,46 @@ namespace App\Http\Middleware\Dict;
 
 use Closure;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use App\Http\Services\Dict\DictTraceabilityService;
 
 class TraceabilityMiddleware
 {
+    /**
+     * @var DictTraceabilityService
+     */
+    protected $traceabilityService;
+    
+    /**
+     * Constructeur avec injection de dépendance
+     */
+    public function __construct(DictTraceabilityService $traceabilityService)
+    {
+        $this->traceabilityService = $traceabilityService;
+    }
+    
     public function handle($request, Closure $next)
     {
+        // Marquer le début du traitement
+        $startTime = microtime(true);
+        
         // Générer un identifiant unique pour chaque requête
-        $requestId = (string) Str::uuid();
-        $request->headers->set('X-Request-ID', $requestId);
+        $requestId = $request->header(config('dict.traceability.request_id_header'));
+        
+        if (!$requestId) {
+            $requestId = $this->traceabilityService->generateRequestId();
+            $request->headers->set(config('dict.traceability.request_id_header'), $requestId);
+        }
         
         // Journaliser la requête
-        Log::channel('dict')->info('DICT:Traçabilité - Requête reçue', [
-            'request_id' => $requestId,
-            'method' => $request->method(),
-            'url' => $request->fullUrl(),
-            'ip' => $request->ip(),
-            'user_agent' => $request->header('User-Agent')
-        ]);
+        $this->traceabilityService->logIncomingRequest($request, $requestId);
         
         $response = $next($request);
         
         // Ajouter l'identifiant à la réponse
-        $response->headers->set('X-Request-ID', $requestId);
+        $response->headers->set(config('dict.traceability.request_id_header'), $requestId);
         
         // Journaliser la réponse
-        Log::channel('dict')->info('DICT:Traçabilité - Réponse envoyée', [
-            'request_id' => $requestId,
-            'status' => $response->getStatusCode(),
-            'duration_ms' => microtime(true) - LARAVEL_START
-        ]);
+        $this->traceabilityService->logOutgoingResponse($response, $requestId, $startTime);
         
         return $response;
     }
