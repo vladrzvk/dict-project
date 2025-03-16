@@ -1,0 +1,38 @@
+.dict-health-indicator {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    z-index: 1000;
+  }
+  
+  .indicator {
+    font-size: 24px;
+    cursor: pointer;
+  }
+  
+  .healthy {
+    color: green;
+  }
+  
+  .unhealthy {
+    color: red;
+  }
+  
+  .tooltip {
+    visibility: hidden;
+    position: absolute;
+    bottom: 25px;
+    right: 0;
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    width: 250px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .dict-health-indicator:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+  }

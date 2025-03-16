@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: laravel-config
+  namespace: blog-dict
+data:
+  APP_NAME: "Blog DICT"
+  APP_ENV: "production"
+  APP_DEBUG: "false"
+  APP_URL: "http://blog-dict.local"
+  LOG_CHANNEL: "stack"
+  DB_CONNECTION: "mysql"
+  DB_HOST: "mysql"
+  DB_PORT: "3306"
+  DB_DATABASE: "blog_dict"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: laravel-secrets
+  namespace: blog-dict
+type: Opaque
+data:
+  APP_KEY: "YmFzZTY0OmV5SnBjM01pT2lKamIyMGlMQ0oxYzJVaU9pSnFkMlFpTENKbGVIQWlPakUyTlRnM01UUXdNRGt"  # Exemple, générez une clé avec php artisan key:generate --show
+  DB_USERNAME: "YmxvZ3VzZXI="  # bloguser en base64
+  DB_PASSWORD: "cGFzc3dvcmQ="  # password en base64

@@ -1,0 +1,15 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+      <a class="navbar-brand" routerLink="/">Mon Blog</a>
+      <div class="navbar-nav">
+        <a class="nav-item nav-link" routerLink="/articles">Articles</a>
+        <a class="nav-item nav-link" routerLink="/articles/new">Créer un Article</a>
+      </div>
+    </div>
+  </nav>
+  
+  <div class="container mt-4">
+    <router-outlet></router-outlet>
+  </div>
+  
+  <app-dict-health-indicator></app-dict-health-indicator>

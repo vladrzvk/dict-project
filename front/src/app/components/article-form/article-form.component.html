@@ -1,0 +1,78 @@
+<div class="container">
+    <h2>{{ isEdit ? 'Modifier' : 'Créer' }} un Article</h2>
+  
+    <form [formGroup]="articleForm" (ngSubmit)="onSubmit()" class="article-form">
+      <div class="form-group">
+        <label for="title">Titre</label>
+        <input 
+          type="text" 
+          id="title" 
+          formControlName="title" 
+          class="form-control" 
+          [ngClass]="{ 'is-invalid': submitted && articleForm.get('title')?.errors }"
+        >
+        <div *ngIf="submitted && articleForm.get('title')?.errors" class="invalid-feedback">
+          <div *ngIf="articleForm.get('title')?.errors?.['required']">Le titre est requis</div>
+          <div *ngIf="articleForm.get('title')?.errors?.['maxlength']">Le titre ne doit pas dépasser 255 caractères</div>
+        </div>
+      </div>
+  
+      <div class="form-group">
+        <label for="author">Auteur</label>
+        <input 
+          type="text" 
+          id="author" 
+          formControlName="author" 
+          class="form-control"
+        >
+      </div>
+  
+      <div class="form-group">
+        <label for="content">Contenu</label>
+        <textarea 
+          id="content" 
+          formControlName="content" 
+          class="form-control" 
+          rows="10"
+          [ngClass]="{ 'is-invalid': submitted && articleForm.get('content')?.errors }"
+        ></textarea>
+        <div *ngIf="submitted && articleForm.get('content')?.errors" class="invalid-feedback">
+          <div *ngIf="articleForm.get('content')?.errors?.['required']">Le contenu est requis</div>
+        </div>
+      </div>
+  
+      <div class="form-group form-check">
+        <input 
+          type="checkbox" 
+          id="published" 
+          formControlName="published" 
+          class="form-check-input"
+        >
+        <label for="published" class="form-check-label">Publié</label>
+      </div>
+  
+      <div *ngIf="error" class="alert alert-danger mt-3">
+        {{ error }}
+      </div>
+  
+      <div *ngIf="loading" class="text-center">
+        <p>Chargement...</p>
+      </div>
+  
+      <div class="form-actions">
+        <button 
+          type="submit" 
+          class="btn btn-primary" 
+          [disabled]="loading"
+        >
+          {{ isEdit ? 'Mettre à jour' : 'Créer' }} l'article
+        </button>
+        <a 
+          [routerLink]="['/articles']" 
+          class="btn btn-secondary ml-2"
+        >
+          Annuler
+        </a>
+      </div>
+    </form>
+  </div>

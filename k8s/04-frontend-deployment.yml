@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-frontend
+  namespace: blog-dict
+  labels:
+    app: blog-frontend
+    dict.security/enabled: "true"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: blog-frontend
+  template:
+    metadata:
+      labels:
+        app: blog-frontend
+    spec:
+      containers:
+      - name: angular
+        image: blog-dict-frontend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+        # DICT - Surveillance
+        livenessProbe:
+          httpGet:
+            path: /dict/health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /dict/health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        env:
+        - name: BACKEND_API_URL
+          value: "http://blog-backend"
+      
+      # DICT - Sidecar WAF
+      - name: dict-waf
+        image: owasp/modsecurity-crs:v3.3-nginx
+        ports:
+        - containerPort: 8080
+          name: waf
+        resources:
+          limits:
+            cpu: "200m"
+            memory: "256Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+        env:
+        - name: BACKEND_UPSTREAM
+          value: "127.0.0.1:80"
+        volumeMounts:
+        - name: waf-config
+          mountPath: /etc/modsecurity.d/include
+          readOnly: true
+      
+      volumes:
+      - name: waf-config
+        configMap:
+          name: waf-config

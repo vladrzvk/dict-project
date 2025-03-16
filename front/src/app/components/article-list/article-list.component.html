@@ -1,0 +1,27 @@
+<div class="container">
+    <h2>Articles</h2>
+    <a [routerLink]="['/articles/new']" class="btn btn-primary mb-3">Add New Article</a>
+    
+    <div *ngIf="loading" class="alert alert-info">Loading articles...</div>
+    <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+    
+    <div *ngIf="!loading && !error">
+      <div *ngIf="articles.length === 0" class="alert alert-warning">No articles found.</div>
+      
+      <div *ngFor="let article of articles" class="card mb-3">
+        <div class="card-body">
+          <h5 class="card-title">{{ article.title }}</h5>
+          <h6 class="card-subtitle mb-2 text-muted">By {{ article.author || 'Unknown' }}</h6>
+          <p class="card-text">{{ article.content | slice:0:150 }}...</p>
+          <span class="badge" [ngClass]="article.published ? 'badge-success' : 'badge-secondary'">
+            {{ article.published ? 'Published' : 'Draft' }}
+          </span>
+          <div class="mt-2">
+            <a [routerLink]="['/articles', article.id]" class="btn btn-sm btn-info mr-1">View</a>
+            <a [routerLink]="['/articles', article.id, 'edit']" class="btn btn-sm btn-warning mr-1">Edit</a>
+            <button (click)="deleteArticle(article.id)" class="btn btn-sm btn-danger">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

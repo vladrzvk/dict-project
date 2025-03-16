@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: blog-dict-ingress
+  namespace: blog-dict
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # DICT - Sécurité
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  rules:
+  - host: blog-dict.local
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: blog-backend
+            port:
+              number: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: blog-frontend
+            port:
+              number: 80

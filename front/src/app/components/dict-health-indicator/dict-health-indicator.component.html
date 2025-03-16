@@ -1,0 +1,9 @@
+<div class="dict-health-indicator" *ngIf="healthStatus$ | async as health">
+    <span class="indicator" [ngClass]="health.status === 'UP' ? 'healthy' : 'unhealthy'">
+      •
+    </span>
+    <div class="tooltip">
+      <p>Statut du système: {{ health.status }}</p>
+      <p>Dernière vérification: {{ health.timestamp | date:'medium' }}</p>
+    </div>
+  </div>
