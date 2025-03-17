@@ -21,6 +21,6 @@ metadata:
   namespace: blog-dict
 type: Opaque
 data:
-  APP_KEY: "YmFzZTY0OmV5SnBjM01pT2lKamIyMGlMQ0oxYzJVaU9pSnFkMlFpTENKbGVIQWlPakUyTlRnM01UUXdNRGt"  # Exemple, générez une clé avec php artisan key:generate --show
+  APP_KEY: "369elyRoFN4PixygXQGgtFmF0hirgfSjMgUmDxMBhLs="
   DB_USERNAME: "YmxvZ3VzZXI="  # bloguser en base64
   DB_PASSWORD: "cGFzc3dvcmQ="  # password en base64

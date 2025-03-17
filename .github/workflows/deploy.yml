@@ -1,0 +1,41 @@
+# .github/workflows/deploy.yml
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    # steps:
+    # - uses: actions/checkout@v2
+    
+    # # Construire et pousser l'image Docker backend
+    # - name: Build and push backend
+    #   uses: docker/build-push-action@v2
+    #   with:
+    #     context: ./back
+    #     push: true
+    #     tags: username/blog-dict-backend:latest
+    
+    # # Construire et pousser l'image Docker frontend
+    # - name: Build and push frontend
+    #   uses: docker/build-push-action@v2
+    #   with:
+    #     context: ./front
+    #     push: true
+    #     tags: username/blog-dict-frontend:latest
+    
+    # # Mettre à jour les manifestes Kubernetes
+    # - name: Update Kubernetes manifests
+    #   run: |
+    #     sed -i 's|blog-dict-backend:latest|username/blog-dict-backend:latest|g' k8s/02-backend-deployment.yml
+    #     sed -i 's|blog-dict-frontend:latest|username/blog-dict-frontend:latest|g' k8s/04-frontend-deployment.yml
+    
+    # # Déployer sur Kubernetes
+    # - name: Deploy to Kubernetes
+    #   uses: steebchen/kubectl@v2
+    #   with:
+    #     config: ${{ secrets.KUBE_CONFIG_DATA }}
+    #     command: apply -f k8s/

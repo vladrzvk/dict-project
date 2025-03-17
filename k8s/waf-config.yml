@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: waf-config
+  namespace: blog-dict
+data:
+  modsecurity.conf: |
+    SecRuleEngine On
+    SecRequestBodyAccess On
+    SecResponseBodyAccess On
+    SecResponseBodyMimeType text/plain text/html text/xml application/json
+    
+    SecRule REQUEST_HEADERS:Content-Type "text/plain" \
+      "id:1001,phase:1,deny,status:403,msg:'Content-Type non autorisé'"
+    
+    SecRule ARGS "@rx (?i:select|union|insert|update|delete|drop|alter)" \
+      "id:1002,phase:2,deny,status:403,msg:'Possible attaque par injection SQL'"
+    
+    SecAuditLogParts ABCFHZ
+    SecAuditLogType Serial
+    SecAuditLog /var/log/modsec_audit.log
+    
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'"

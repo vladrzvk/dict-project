@@ -1,0 +1,384 @@
+1.Créer le namespace
+
+kubectl apply -f 00-namespace.yml
+
+2. Déployer les ConfigMaps et Secrets
+
+kubectl apply -f 01-backend-config.yml
+configmap/laravel-config unchanged
+secret/laravel-secrets created
+
+kubectl get all -n blog-dict
+No resources found in blog-dict namespace.
+
+kubectl get secrets -n blog-dict
+NAME              TYPE     DATA   AGE
+laravel-secrets   Opaque   3      87s
+
+kubectl get configmaps -n blog-dict
+NAME               DATA   AGE
+kube-root-ca.crt   1      6m49s
+laravel-config     9      6m12s
+
+kubectl apply -f nginx-config.yml
+configmap/nginx-config created
+
+kubectl apply -f promtail-config.yml
+configmap/promtail-config created
+
+kubectl apply -f waf-config.yml
+configmap/waf-config created
+
+3.Configurer le stockage persistent
+
+kubectl apply -f 09-storage.yml
+persistentvolumeclaim/laravel-storage-pvc created
+persistentvolumeclaim/prometheus-storage-pvc created
+persistentvolumeclaim/grafana-storage-pvc created
+
+4. Déployer la base de données
+
+kubectl apply -f 10-mysql.yml
+deployment.apps/mysql created
+persistentvolumeclaim/mysql-data-pvc created
+service/mysql created
+
+
+5. Déployer l'infrastructure de monitoring
+
+kubectl apply -f loki-deployment.yml
+deployment.apps/loki created
+configmap/loki-config created
+persistentvolumeclaim/loki-storage-pvc created
+
+kubectl apply -f 07-dict-monitoring.yml
+deployment.apps/dict-prometheus created
+service/dict-prometheus created
+configmap/grafana-datasources created
+service/dict-grafana created
+Error from server (BadRequest): error when creating "07-dict-monitoring.yml": Deployment in version "v1" cannot be handled as a Deployment: strict decoding error: unknown field "spec.template.spec.volumeMounts", unknown field "spec.template.volumes"
+
+kubectl apply -f 07-dict-monitoring.yml
+deployment.apps/dict-prometheus unchanged
+service/dict-prometheus unchanged
+deployment.apps/dict-grafana created
+configmap/grafana-datasources unchanged
+service/dict-grafana unchanged
+
+kubectl delete -f 07-dict-monitoring.yml
+deployment.apps "dict-prometheus" deleted
+service "dict-prometheus" deleted
+deployment.apps "dict-grafana" deleted
+configmap "grafana-datasources" deleted
+service "dict-grafana" deleted
+
+kubectl apply -f 07-dict-monitoring.yml 
+deployment.apps/dict-prometheus created
+service/dict-prometheus created
+deployment.apps/dict-grafana created
+configmap/grafana-datasources created
+service/dict-grafana created
+
+6. Déployer les applications
+
+ kubectl apply -f 02-backend-deployment.yml
+deployment.apps/blog-backend created
+
+ kubectl apply -f 03-backend-service.yml
+service/blog-backend created
+
+ kubectl apply -f 04-frontend-deployment.yml
+deployment.apps/blog-frontend created
+
+ kubectl apply -f 05-frontend-service.yml
+service/blog-frontend created
+
+ kubectl apply -f 08-phpmyadmin.yml
+deployment.apps/phpmyadmin created
+service/phpmyadmin created
+
+7. Configurer l'Ingress
+kubectl apply -f 06-ingress.yml
+ingress.networking.k8s.io/blog-dict-ingress created
+
+
+Voir les pods : 
+kubectl get pods -n blog-dict
+NAME                               READY   STATUS              RESTARTS       AGE
+blog-backend-86c49b5564-9djp8      1/3     CrashLoopBackOff    3 (31s ago)    88s
+blog-backend-86c49b5564-b87z7      1/3     CrashLoopBackOff    3 (33s ago)    88s
+blog-frontend-74dff49c8b-96kks     0/2     ImagePullBackOff    0              75s
+blog-frontend-74dff49c8b-mbk2k     0/2     ImagePullBackOff    0              75s
+dict-grafana-c56df8968-tmcvv       1/1     Running             0              3m53s
+dict-prometheus-7f8bfdc7fb-phjqf   0/1     ContainerCreating   0              3m53s
+loki-6fcbf4cf4b-s5jzn              0/1     CrashLoopBackOff    6 (2m8s ago)   8m6s
+mysql-65844d669c-l6n47             1/1     Running             0              8m18s
+phpmyadmin-5f4d557b56-kttbs        1/1     Running             0              63s
+
+
+Pb : 
+Vérifier les détails des pods en erreur
+
+kubectl describe pod blog-backend-86c49b5564-9djp8 -n blog-dict
+
+PS C:\Users\vlad\contains\epitech\2025\secops-soft\lar_ang\k8s> kubectl describe pod blog-backend-86c49b5564-9djp8 -n blog-dict
+Name:             blog-backend-86c49b5564-9djp8
+Namespace:        blog-dict
+Priority:         0
+Service Account:  default
+Node:             docker-desktop/192.168.65.3
+Start Time:       Mon, 17 Mar 2025 15:01:12 +0100
+Labels:           app=blog-backend
+                  pod-template-hash=86c49b5564
+Annotations:      <none>
+Status:           Pending
+IP:               10.1.0.46
+IPs:
+  IP:           10.1.0.46
+Controlled By:  ReplicaSet/blog-backend-86c49b5564
+Containers:
+  php:
+    Container ID:
+    Image:          blog-dict-backend:latest
+    Image ID:
+    Port:           9000/TCP
+    Host Port:      0/TCP
+    State:          Waiting
+      Reason:       ImagePullBackOff
+    Ready:          False
+    Restart Count:  0
+    Limits:
+      cpu:     500m
+      memory:  512Mi
+    Requests:
+      cpu:      200m
+      memory:   256Mi
+    Liveness:   http-get http://:80/api/dict/health delay=30s timeout=5s period=10s #success=1 #failure=3
+    Readiness:  http-get http://:80/api/dict/health delay=5s timeout=3s period=5s #success=1 #failure=3
+    Environment:
+      APP_NAME:       <set to the key 'APP_NAME' of config map 'laravel-config'>       Optional: false
+      APP_ENV:        <set to the key 'APP_ENV' of config map 'laravel-config'>        Optional: false
+      APP_DEBUG:      <set to the key 'APP_DEBUG' of config map 'laravel-config'>      Optional: false
+      APP_URL:        <set to the key 'APP_URL' of config map 'laravel-config'>        Optional: false
+      LOG_CHANNEL:    <set to the key 'LOG_CHANNEL' of config map 'laravel-config'>    Optional: false
+      DB_CONNECTION:  <set to the key 'DB_CONNECTION' of config map 'laravel-config'>  Optional: false
+      DB_HOST:        <set to the key 'DB_HOST' of config map 'laravel-config'>        Optional: false
+      DB_PORT:        <set to the key 'DB_PORT' of config map 'laravel-config'>        Optional: false
+      DB_DATABASE:    <set to the key 'DB_DATABASE' of config map 'laravel-config'>    Optional: false
+      DB_USERNAME:    <set to the key 'DB_USERNAME' in secret 'laravel-secrets'>       Optional: false
+      DB_PASSWORD:    <set to the key 'DB_PASSWORD' in secret 'laravel-secrets'>       Optional: false
+      APP_KEY:        <set to the key 'APP_KEY' in secret 'laravel-secrets'>           Optional: false
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-nbkm6 (ro)
+      /var/www/storage from laravel-storage (rw)
+  nginx:
+    Container ID:   docker://53c324246cdcd7e886d2783bac34ace5aec7e1ac7d7e3aebd4d41b694644a8a0
+    Image:          nginx:alpine
+    Image ID:       docker-pullable://nginx@sha256:4ff102c5d78d254a6f0da062b3cf39eaf07f01eec0927fd21e219d0af8bc0591
+    Port:           80/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Mon, 17 Mar 2025 15:01:14 +0100
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     200m
+      memory:  128Mi
+    Requests:
+      cpu:        100m
+      memory:     64Mi
+    Environment:  <none>
+    Mounts:
+      /etc/nginx/conf.d from nginx-config (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-nbkm6 (ro)
+      /var/www/storage from laravel-storage (rw)
+  dict-logger:
+    Container ID:   docker://874fbf1f806a5e475976563ca132db3ffa46034d2650cffc25c48cd2c6ecab9a
+    Image:          grafana/promtail:2.8.0
+    Image ID:       docker-pullable://grafana/promtail@sha256:f2d34db787476fbf0b5b9e69f9dac40762c362b9ad1f9e420895b1fc02b60b30
+    Port:           <none>
+    Host Port:      <none>
+    State:          Waiting
+      Reason:       CrashLoopBackOff
+    Last State:     Terminated
+      Reason:       Error
+      Exit Code:    1
+      Started:      Mon, 17 Mar 2025 15:04:27 +0100
+      Finished:     Mon, 17 Mar 2025 15:04:27 +0100
+    Ready:          False
+    Restart Count:  5
+    Limits:
+      cpu:     100m
+      memory:  128Mi
+    Requests:
+      cpu:        50m
+      memory:     64Mi
+    Environment:  <none>
+    Mounts:
+      /etc/promtail from promtail-config (ro)
+      /positions from promtail-positions (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-nbkm6 (ro)
+      /var/www/storage from laravel-storage (rw)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       False
+  ContainersReady             False
+  PodScheduled                True
+Volumes:
+  laravel-storage:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  laravel-storage-pvc
+    ReadOnly:   false
+  nginx-config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      nginx-config
+    Optional:  false
+  promtail-positions:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:
+    SizeLimit:  <unset>
+  promtail-config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      promtail-config
+    Optional:  false
+  kube-api-access-nbkm6:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason     Age                    From               Message
+  ----     ------     ----                   ----               -------
+  Normal   Scheduled  3m47s                  default-scheduler  Successfully assigned blog-dict/blog-backend-86c49b5564-9djp8 to docker-desktop
+  Normal   Started    3m46s                  kubelet            Started container nginx
+  Normal   Pulling    3m46s                  kubelet            Pulling image "grafana/promtail:2.8.0"
+  Normal   Pulled     3m46s                  kubelet            Container image "nginx:alpine" already present on machine
+  Normal   Created    3m46s                  kubelet            Created container nginx
+  Normal   Pulled     3m40s                  kubelet            Successfully pulled image "grafana/promtail:2.8.0" in 6.279s (6.51s including waiting). Image size: 74933875 bytes.
+  Normal   Created    3m38s (x2 over 3m39s)  kubelet            Created container dict-logger
+  Normal   Started    3m38s (x2 over 3m39s)  kubelet            Started container dict-logger
+  Normal   Pulled     3m38s                  kubelet            Container image "grafana/promtail:2.8.0" already present on machine
+  Warning  Failed     3m37s (x3 over 3m39s)  kubelet            Error: ImagePullBackOff
+  Normal   Pulling    3m35s (x2 over 3m47s)  kubelet            Pulling image "blog-dict-backend:latest"
+  Warning  Failed     3m34s (x2 over 3m46s)  kubelet            Error: ErrImagePull
+  Warning  Failed     3m34s (x2 over 3m46s)  kubelet            Failed to pull image "blog-dict-backend:latest": Error response from daemon: pull access denied for blog-dict-backend, repository does not exist or may require 'docker login'
+  Warning  BackOff    3m34s (x2 over 3m37s)  kubelet            Back-off restarting failed container dict-logger in pod blog-backend-86c49b5564-9djp8_blog-dict(1ab51a3d-658a-4fae-89e5-abe683084a78)
+  Normal   BackOff    3m23s (x4 over 3m39s)  kubelet            Back-off pulling image "blog-dict-backend:latest"
+
+  pas d'image docker ... 
+
+kubectl describe pod blog-frontend-74dff49c8b-96kks -n blog-dict
+PS C:\Users\vlad\contains\epitech\2025\secops-soft\lar_ang\k8s> kubectl describe pod blog-frontend-74dff49c8b-96kks -n blog-dict
+Name:             blog-frontend-74dff49c8b-96kks
+Namespace:        blog-dict
+Priority:         0
+Service Account:  default
+Node:             docker-desktop/192.168.65.3
+Start Time:       Mon, 17 Mar 2025 15:01:25 +0100
+Labels:           app=blog-frontend
+                  pod-template-hash=74dff49c8b
+Annotations:      <none>
+Status:           Pending
+IP:               10.1.0.49
+IPs:
+  IP:           10.1.0.49
+Controlled By:  ReplicaSet/blog-frontend-74dff49c8b
+Containers:
+  angular:
+    Container ID:   
+    Image:          blog-dict-frontend:latest
+    Image ID:       
+    Port:           80/TCP
+    Host Port:      0/TCP
+    State:          Waiting
+      Reason:       ImagePullBackOff
+    Ready:          False
+    Restart Count:  0
+    Limits:
+      cpu:     200m
+      memory:  256Mi
+    Requests:
+      cpu:      100m
+      memory:   128Mi
+    Liveness:   http-get http://:http/dict/health delay=30s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  http-get http://:http/dict/health delay=5s timeout=1s period=5s #success=1 #failure=3
+    Environment:
+      BACKEND_API_URL:  http://blog-backend
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-rw6kw (ro)
+  dict-waf:
+    Container ID:
+    Image:          owasp/modsecurity-crs:v3.3-nginx
+    Image ID:
+    Port:           8080/TCP
+    Host Port:      0/TCP
+    State:          Waiting
+      Reason:       ImagePullBackOff
+    Ready:          False
+    Restart Count:  0
+    Limits:
+      cpu:     200m
+      memory:  256Mi
+    Requests:
+      cpu:     100m
+      memory:  128Mi
+    Environment:
+      BACKEND_UPSTREAM:  127.0.0.1:80
+    Mounts:
+      /etc/modsecurity.d/include from waf-config (ro)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-rw6kw (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       False
+  ContainersReady             False
+  PodScheduled                True
+Volumes:
+  waf-config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      waf-config
+    Optional:  false
+  kube-api-access-rw6kw:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason     Age                    From               Message
+  ----     ------     ----                   ----               -------
+  Normal   Scheduled  4m17s                  default-scheduler  Successfully assigned blog-dict/blog-frontend-74dff49c8b-96kks to docker-desktop
+  Warning  Failed     4m (x2 over 4m14s)     kubelet            Error: ErrImagePull
+  Normal   BackOff    3m45s (x2 over 4m14s)  kubelet            Back-off pulling image "blog-dict-frontend:latest"
+  Warning  Failed     3m45s (x2 over 4m14s)  kubelet            Error: ImagePullBackOff
+  Normal   BackOff    3m45s (x2 over 4m14s)  kubelet            Back-off pulling image "owasp/modsecurity-crs:v3.3-nginx"
+  Warning  Failed     3m45s (x2 over 4m14s)  kubelet            Error: ImagePullBackOff
+  Normal   Pulling    3m34s (x3 over 4m16s)  kubelet            Pulling image "blog-dict-frontend:latest"
+  Warning  Failed     3m33s (x3 over 4m15s)  kubelet            Failed to pull image "blog-dict-frontend:latest": Error response from daemon: pull access denied for blog-dict-frontend, repository does not exist or may require 'docker login'
+  Warning  Failed     3m33s (x3 over 4m15s)  kubelet            Error: ErrImagePull
+  Normal   Pulling    3m33s (x3 over 4m15s)  kubelet            Pulling image "owasp/modsecurity-crs:v3.3-nginx"
+  Warning  Failed     3m33s (x3 over 4m14s)  kubelet            Failed to pull image "owasp/modsecurity-crs:v3.3-nginx": Error response from daemon: failed to resolve reference "docker.io/owasp/modsecurity-crs:v3.3-nginx": docker.io/owasp/modsecurity-crs:v3.3-nginx: not found
+
+
+
+lister les services : 
+kubectl get services -n blog-dict
+
+verifier les evenements: 
+kubectl get events -n blog-dict
+
+
+Manière elegente d'arreter le cluster : 
+cf k8s-shutdown.ps1

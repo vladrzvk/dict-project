@@ -131,7 +131,7 @@ spec:
       
       # DICT - Sidecar de journalisation
       - name: dict-logger
-        image: fluent/fluentd:v1.14-1
+        image: grafana/promtail:2.8.0
         resources:
           limits:
             cpu: "100m"
@@ -140,12 +140,13 @@ spec:
             cpu: "50m"
             memory: "64Mi"
         volumeMounts:
-        - name: fluentd-config
-          mountPath: /fluentd/etc
+        - name: promtail-config
+          mountPath: /etc/promtail
           readOnly: true
         - name: laravel-storage
           mountPath: /var/www/storage
-      
+        - name: promtail-positions
+          mountPath: /positions
       volumes:
       - name: laravel-storage
         persistentVolumeClaim:
@@ -153,6 +154,8 @@ spec:
       - name: nginx-config
         configMap:
           name: nginx-config
-      - name: fluentd-config
+      - name: promtail-positions
+        emptyDir: {}
+      - name: promtail-config
         configMap:
-          name: fluentd-config
+          name: promtail-config
