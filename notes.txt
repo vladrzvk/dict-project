@@ -382,3 +382,16 @@ kubectl get events -n blog-dict
 
 Manière elegente d'arreter le cluster : 
 cf k8s-shutdown.ps1
+
+
+[15:45:20] VÃ©rification du statut des pods...
+NAME                               READY   STATUS              RESTARTS      AGE
+blog-backend-86c49b5564-7wkjc      1/3     Error               2 (25s ago)   31s
+blog-backend-86c49b5564-tw7kz      1/3     Error               2 (25s ago)   31s
+blog-frontend-676d8fbc64-mttl2     1/2     Error               2 (21s ago)   31s
+blog-frontend-676d8fbc64-w69hj     1/2     Error               2 (21s ago)   31s
+dict-grafana-c56df8968-kj57j       1/1     Running             0             31s
+dict-prometheus-7f8bfdc7fb-sgtgf   0/1     ContainerCreating   0             31s
+loki-6fcbf4cf4b-5hhmt              0/1     Error               2 (27s ago)   32s
+mysql-65844d669c-qsnwf             1/1     Running             0             32s
+phpmyadmin-5f4d557b56-cs2wp        1/1     Running             0             31s
