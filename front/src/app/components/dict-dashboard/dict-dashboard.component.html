@@ -1,0 +1,150 @@
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">Dashboard DICT</h1>
+      <button 
+        (click)="refreshData()" 
+        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+        [disabled]="loading"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor" *ngIf="!loading">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" *ngIf="loading">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        {{ loading ? 'Chargement...' : 'Rafraîchir' }}
+      </button>
+    </div>
+    
+    <div *ngIf="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+      <p>{{ error }}</p>
+    </div>
+    
+    <!-- État de santé du système -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">État de santé du système</h2>
+        <div *ngIf="healthData.status" class="flex items-center mb-4">
+          <span class="text-lg font-medium mr-3">État global :</span>
+          <span class="px-3 py-1 rounded-full text-sm font-medium" [ngClass]="getStatusClass(healthData.status)">
+            {{ healthData.status }}
+          </span>
+        </div>
+        <div *ngIf="healthData.timestamp" class="text-sm text-gray-600 mb-4">
+          Dernière vérification : {{ healthData.timestamp | date:'medium' }}
+        </div>
+        
+        <div *ngIf="healthData.components" class="mt-4">
+          <h3 class="text-lg font-medium mb-2">Composants</h3>
+          <div class="space-y-2">
+            <div *ngFor="let component of healthData.components | keyvalue" class="flex justify-between items-center border-b pb-2">
+              <span class="capitalize">{{ component.key }}</span>
+              <span class="px-2 py-1 rounded-full text-xs font-medium" [ngClass]="getStatusClass(component.value.status)">
+                {{ component.value.status }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Statistiques -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Statistiques d'activité</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-blue-50 p-4 rounded-lg">
+            <p class="text-sm text-blue-600 mb-1">Requêtes totales</p>
+            <p class="text-2xl font-bold">{{ statsData.request_count || 0 }}</p>
+          </div>
+          <div class="bg-green-50 p-4 rounded-lg">
+            <p class="text-sm text-green-600 mb-1">Temps moyen</p>
+            <p class="text-2xl font-bold">{{ (statsData.average_response_time || 0) | number:'1.2-2' }} ms</p>
+          </div>
+          <div class="bg-yellow-50 p-4 rounded-lg">
+            <p class="text-sm text-yellow-600 mb-1">Erreurs</p>
+            <p class="text-2xl font-bold">{{ statsData.error_count || 0 }}</p>
+          </div>
+          <div class="bg-purple-50 p-4 rounded-lg">
+            <p class="text-sm text-purple-600 mb-1">Santé</p>
+            <p class="text-2xl font-bold capitalize">{{ statsData.system_health || 'inconnu' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Intégrité & Confidentialité -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Intégrité -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Intégrité</h2>
+        <div *ngIf="integrityData.status" class="flex items-center mb-4">
+          <span class="text-lg font-medium mr-3">État :</span>
+          <span class="px-3 py-1 rounded-full text-sm font-medium" [ngClass]="getStatusClass(integrityData.status)">
+            {{ integrityData.status }}
+          </span>
+        </div>
+        <div *ngIf="integrityData.timestamp" class="text-sm text-gray-600 mb-4">
+          Dernière vérification : {{ integrityData.timestamp | date:'medium' }}
+        </div>
+        
+        <div *ngIf="integrityData.issues && integrityData.issues.length" class="mt-4">
+          <h3 class="text-lg font-medium mb-2">Problèmes détectés</h3>
+          <div class="space-y-2">
+            <div *ngFor="let issue of integrityData.issues" class="bg-yellow-50 p-3 rounded-md">
+              <p class="font-medium">{{ issue.type }}</p>
+              <p class="text-sm">{{ issue.message }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Confidentialité -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Confidentialité</h2>
+        <div *ngIf="confidentialityData.timestamp" class="text-sm text-gray-600 mb-4">
+          Dernière vérification : {{ confidentialityData.timestamp | date:'medium' }}
+        </div>
+        
+        <div *ngIf="confidentialityData.headers_applied" class="mt-4">
+          <h3 class="text-lg font-medium mb-2">En-têtes de sécurité</h3>
+          <div class="space-y-2">
+            <div *ngFor="let header of confidentialityData.headers_applied | keyvalue" class="flex justify-between items-center border-b pb-2">
+              <span class="text-sm font-medium">{{ header.key }}</span>
+              <span class="text-sm truncate max-w-xs">{{ header.value }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-4 flex items-center">
+          <span class="mr-2">TLS activé :</span>
+          <span class="px-2 py-1 rounded-full text-xs font-medium" 
+                [ngClass]="confidentialityData.tls_enabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+            {{ confidentialityData.tls_enabled ? 'Oui' : 'Non' }}
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Activité récente -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-semibold mb-4">Activité récente</h2>
+      <div *ngIf="activityData.timestamp" class="text-sm text-gray-600 mb-4">
+        Période : {{ activityData.period || '60 minutes' }} | Dernière mise à jour : {{ activityData.timestamp | date:'medium' }}
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-blue-50 p-4 rounded-lg">
+          <p class="text-sm text-blue-600 mb-1">Requêtes</p>
+          <p class="text-2xl font-bold">{{ activityData.request_count || 0 }}</p>
+        </div>
+        <div class="bg-yellow-50 p-4 rounded-lg">
+          <p class="text-sm text-yellow-600 mb-1">Erreurs</p>
+          <p class="text-2xl font-bold">{{ activityData.error_count || 0 }}</p>
+        </div>
+        <div class="bg-green-50 p-4 rounded-lg">
+          <p class="text-sm text-green-600 mb-1">Temps moyen de réponse</p>
+          <p class="text-2xl font-bold">{{ (activityData.average_response_time_ms || 0) | number:'1.2-2' }} ms</p>
+        </div>
+      </div>
+    </div>
+  </div>
