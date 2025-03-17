@@ -3,6 +3,14 @@ import { CommonModule } from '@angular/common';
 import { DictDashboardService } from '../../services/dict-dashboard.service';
 import { interval, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { 
+  HealthStatus, 
+  IntegrityStatus, 
+  ConfidentialityStatus, 
+  ActivityStatus, 
+  StatsStatus,
+  DictDashboard
+} from '../../models/dict.model';
 
 @Component({
   selector: 'app-dict-dashboard',
@@ -12,11 +20,11 @@ import { switchMap } from 'rxjs/operators';
   styleUrls: ['./dict-dashboard.component.css']
 })
 export class DictDashboardComponent implements OnInit, OnDestroy {
-  healthData: any = {};
-  integrityData: any = {};
-  confidentialityData: any = {};
-  activityData: any = {};
-  statsData: any = {};
+  healthData: HealthStatus = { status: '', timestamp: '' };
+  integrityData: IntegrityStatus = { status: '', timestamp: '', checks_performed: false, issues: [] };
+  confidentialityData: ConfidentialityStatus = { timestamp: '', headers_applied: {}, environment: '', tls_enabled: false };
+  activityData: ActivityStatus = { timestamp: '', period: '', request_count: 0, error_count: 0, average_response_time_ms: 0 };
+  statsData: StatsStatus = { request_count: 0, average_response_time: 0, error_count: 0, system_health: '' };
   
   loading = true;
   error = '';
@@ -38,7 +46,7 @@ export class DictDashboardComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe({
-        next: (data) => {
+        next: (data: DictDashboard) => {
           this.updateDashboardData(data);
           this.loading = false;
         },
@@ -59,7 +67,7 @@ export class DictDashboardComponent implements OnInit, OnDestroy {
   loadAllData(): void {
     this.loading = true;
     this.dictService.getDashboard().subscribe({
-      next: (data) => {
+      next: (data: DictDashboard) => {
         this.updateDashboardData(data);
         this.loading = false;
       },
@@ -71,7 +79,7 @@ export class DictDashboardComponent implements OnInit, OnDestroy {
     });
   }
   
-  updateDashboardData(data: any): void {
+  updateDashboardData(data: Partial<DictDashboard>): void {
     if (data.health) this.healthData = data.health;
     if (data.integrity) this.integrityData = data.integrity;
     if (data.confidentiality) this.confidentialityData = data.confidentiality;
@@ -79,8 +87,10 @@ export class DictDashboardComponent implements OnInit, OnDestroy {
     if (data.stats) this.statsData = data.stats;
   }
   
-  getStatusClass(status: string): string {
-    switch (status?.toLowerCase()) {
+  getStatusClass(status: string | undefined): string {
+    if (!status) return 'bg-gray-100 text-gray-800';
+    
+    switch (status.toLowerCase()) {
       case 'healthy':
       case 'up':
         return 'bg-green-100 text-green-800';
