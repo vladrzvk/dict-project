@@ -11,6 +11,6 @@ spec:
     app: blog-frontend
   ports:
   - port: 80
-    targetPort: waf
+    targetPort: http
     name: http
   type: ClusterIP

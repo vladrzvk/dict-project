@@ -30,8 +30,8 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copier les fichiers buildés depuis l'étape de build
 COPY --from=build /app/dist/front /usr/share/nginx/html
 
-# Exposer le port 80
-EXPOSE 80
+# Exposer le port 8081
+EXPOSE 8081
 
-# Commande pour démarrer Nginx
+# Démarrer Nginx
 CMD ["nginx", "-g", "daemon off;"]

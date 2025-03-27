@@ -1,1 +1,2 @@
 /docker/mysql/data/*
+/k8s/k8s-logs-*

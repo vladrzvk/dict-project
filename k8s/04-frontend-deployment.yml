@@ -16,12 +16,21 @@ spec:
       labels:
         app: blog-frontend
     spec:
+      initContainers:
+      - name: init-waf-config
+        image: busybox
+        command: ['sh', '-c', 'cp /config-readonly/* /config-writable/ && chmod -R 777 /config-writable/']
+        volumeMounts:
+        - name: waf-nginx-config
+          mountPath: /config-readonly
+        - name: waf-config-writable
+          mountPath: /config-writable
       containers:
       - name: angular
         image: blog-dict-frontend:latest
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 80
+        - containerPort: 8081
           name: http
         resources:
           limits:
@@ -30,7 +39,7 @@ spec:
           requests:
             cpu: "100m"
             memory: "128Mi"
-        # DICT - Surveillance
+
         livenessProbe:
           httpGet:
             path: /dict/health
@@ -46,7 +55,7 @@ spec:
         env:
         - name: BACKEND_API_URL
           value: "http://blog-backend"
-      
+  
       # DICT - Sidecar WAF
       - name: dict-waf
         image: owasp/modsecurity-crs:3.3-nginx
@@ -62,13 +71,33 @@ spec:
             memory: "128Mi"
         env:
         - name: BACKEND_UPSTREAM
-          value: "127.0.0.1:80"
+          value: "localhost:8081"
+        - name: MODSEC_AUDIT_LOG_FORMAT 
+          value: "JSON"
+        - name: MODSEC_AUDIT_LOG_TYPE
+          value: "Serial"
+        - name: MODSEC_AUDIT_LOG
+          value: "/dev/stdout"
+        - name: LISTEN_PORT
+          value: "8080"
+        - name: NGINX_ALWAYS_TLS_REDIRECT
+          value: "off"
         volumeMounts:
         - name: waf-config
           mountPath: /etc/modsecurity.d/include
           readOnly: true
-      
+        - name: waf-config-writable
+          mountPath: /etc/nginx/conf.d/
+        - name: waf-config
+          mountPath: /etc/nginx/conf.d/ports.conf
+          subPath: ports.conf
+          readOnly: true
       volumes:
       - name: waf-config
         configMap:
           name: waf-config
+      - name: waf-nginx-config
+        configMap:
+          name: waf-nginx-config
+      - name: waf-config-writable
+        emptyDir: {}

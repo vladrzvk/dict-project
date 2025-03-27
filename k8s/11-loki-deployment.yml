@@ -28,11 +28,6 @@ spec:
             memory: "512Mi"
         args:
         - -config.file=/etc/loki/local-config.yaml
-        volumeMounts:
-        - name: loki-config
-          mountPath: /etc/loki
-        - name: loki-storage
-          mountPath: /loki
       volumes:
       - name: loki-config
         configMap:
@@ -86,6 +81,11 @@ data:
       enforce_metric_name: false
       reject_old_samples: true
       reject_old_samples_max_age: 168h
+
+    compactor:
+      working_directory: /loki/compactor
+      shared_store: filesystem
+      compaction_interval: 10m
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

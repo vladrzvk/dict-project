@@ -1,3 +1,7 @@
+# Encoding: UTF-8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
 # Kubernetes Cluster Startup Script
 # Gère la construction des images Docker et le déploiement Kubernetes
 
@@ -122,9 +126,11 @@ function Create-Namespace {
 function Deploy-ConfigsAndSecrets {
     $configFiles = @(
         "01-backend-config.yml",
-        "nginx-config.yml", 
-        "promtail-config.yml", 
-        "waf-config.yml"
+        "12-nginx-config.yml", 
+        "14-promtail-config.yml", 
+        "15-waf-config.yml",
+        "16-waf-nginx-config.yml",
+        "13-prometheus-config.yml"
     )
 
     foreach ($file in $configFiles) {
@@ -141,10 +147,10 @@ function Deploy-ConfigsAndSecrets {
 # Déployer les ressources Kubernetes
 function Deploy-KubernetesResources {
     $deploymentFiles = @(
-        "09-storage.yml",     # PersistentVolumeClaims
-        "10-mysql.yml",       # Base de données
-        "loki-deployment.yml",# Système de logs
-        "07-dict-monitoring.yml", # Monitoring
+        "09-storage.yml",
+        "10-mysql.yml",
+        "11-loki-deployment.yml",
+        "07-dict-monitoring.yml",
         "02-backend-deployment.yml",
         "03-backend-service.yml",
         "04-frontend-deployment.yml",
